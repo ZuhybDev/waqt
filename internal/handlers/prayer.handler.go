@@ -1,9 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -67,14 +70,58 @@ func HandlePrayers(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func HandleQuran(w http.ResponseWriter, r *http.Request) {
+// type Verses struct {
+// 	number int
+// }
 
-
-  
+type Verse struct {
+	Number int `json:"number"`
+	Text   struct {
+		Ar string `json:"ar"`
+		En string `json:"en"`
+	} `json:"text"`
 }
 
+type Surah struct {
+	Name struct {
+		Ar string `json:"ar"`
+		En string `json:"en"`
+	} `json:"name"`
+	Verses []Verse `json:"verses"`
+}
 
+func HandleQuran(w http.ResponseWriter, r *http.Request) {
 
+	quranFile := "../database.json"
 
+	quranContent, err := os.ReadFile(quranFile)
 
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
 
+	var quran []Surah
+	err = json.Unmarshal(quranContent, &quran)
+
+	if err != nil {
+		fmt.Println("Error parsing JSON:", err)
+		return
+	}
+
+	rand.Seed(time.Now().UnixNano())
+
+	randomSurah := quran[rand.Intn(len(quran))]
+
+	randomIndex := rand.Intn(len(randomSurah.Verses))
+	randomVerse := randomSurah.Verses[randomIndex]
+
+	// 3. Prepare response
+	w.Header().Set("Content-Type", "application/json")
+
+	// If you want to return ONLY the Arabic text as a string:
+	// w.Write([]byte(randomVerse.Text.Ar))
+
+	// BETTER: Return the whole Verse object as JSON
+	json.NewEncoder(w).Encode(randomVerse)
+}

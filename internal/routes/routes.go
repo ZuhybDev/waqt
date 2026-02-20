@@ -10,7 +10,8 @@ func Register() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/api/prayers", handlers.HandlePrayers)
-	mux.HandleFunc("/api/quran", handlers.HandlePrayers)
+	mux.HandleFunc("/api/quran", handlers.HandleQuran)
 
 	return mux
+
 }
